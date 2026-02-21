@@ -150,7 +150,7 @@ def demo():
     print("\nEscalation paths from alice:")
     paths = graph.find_escalation_paths("aws::123456789012::user::alice")
     for path in paths:
-        print(f"  - {path['nodes'][0]['name']} → {path['relationship']} → {path['nodes'][1]['name']}")
+        print(f"  - {path['nodes'][0]['name']} -> {path['relationship']} -> {path['nodes'][1]['name']}")
 
     # Show high-risk identities
     print("\nHigh-risk identities:")
