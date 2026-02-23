@@ -10,6 +10,7 @@ const Navigation = () => {
         <li><Link to="/graph">Identity Graph</Link></li>
         <li><Link to="/identities">Identities</Link></li>
         <li><Link to="/settings">Guard Policy</Link></li>
+        <li><Link to="/audit">Audit Trail</Link></li>
       </ul>
     </nav>
   )
