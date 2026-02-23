@@ -1,7 +1,12 @@
 import json
 from datetime import datetime
 from typing import Dict, Any
-from ...models.audit import EvaluationAudit
+try:
+    from ...models.audit import EvaluationAudit
+except ImportError:
+    EvaluationAudit = None
+except Exception:
+    EvaluationAudit = None
 from ...models.guard import ProposedChange, GuardDecision
 # In a real app, we'd use a database session
 # For this MVP, we simulate storing to a database or a feature log
