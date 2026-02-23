@@ -370,3 +370,78 @@ main {
   color: var(--accent);
   font-weight: bold;
 }
+
+/* Alert Feed Styles */
+.alert-feed {
+  margin-bottom: 32px;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(244, 63, 94, 0.05);
+}
+
+.alert-feed h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alert-card {
+  background: rgba(15, 23, 42, 0.8);
+  padding: 10px;
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  margin-bottom: 4px;
+}
+
+.alert-type {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.alert-time {
+  color: var(--text-muted);
+}
+
+.alert-msg {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.alert-target {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 4px;
+  word-break: break-all;
+}
