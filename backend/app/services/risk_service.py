@@ -4,12 +4,23 @@ from ..graph.database import get_db_connection
 
 def get_high_risk_identities() -> List[Identity]:
     """Get all high-risk identities from the graph database"""
-    # This is a placeholder implementation
-    # In a real implementation, this would query the Neo4j database
     db = get_db_connection()
+    driver = db.get_driver()
 
-    # Example Cypher query for finding high-risk identities:
-    # MATCH (i:Identity {highRisk: true}) RETURN i
-    # Or MATCH (i:Identity) WHERE i.risk_score > 0.8 RETURN i
-
-    return []
+    with driver.session() as session:
+        query = """
+        MATCH (i:Identity)
+        WHERE i.name CONTAINS 'admin' OR i.name CONTAINS 'Admin' OR i.high_privilege = true
+        RETURN i
+        """
+        result = session.run(query)
+        identities = []
+        for record in result:
+            node = record['i']
+            identities.append(Identity(
+                id=node['id'],
+                provider=node['provider'],
+                type=node['type'],
+                name=node['name']
+            ))
+        return identities
