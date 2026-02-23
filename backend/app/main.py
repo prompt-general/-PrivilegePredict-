@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .api import identities, paths, risk
+from .api import identities, paths, risk, guard
 
 app = FastAPI(
     title="PrivilegePredict API",
@@ -21,6 +21,7 @@ app.add_middleware(
 app.include_router(identities.router, prefix="/identities", tags=["identities"])
 app.include_router(paths.router, prefix="/paths", tags=["paths"])
 app.include_router(risk.router, prefix="/risk", tags=["risk"])
+app.include_router(guard.router, prefix="/guard", tags=["guard"])
 
 @app.get("/")
 async def root():
