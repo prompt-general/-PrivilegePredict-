@@ -24,3 +24,23 @@ def get_high_risk_identities() -> List[Identity]:
                 name=node['name']
             ))
         return identities
+
+def get_recent_alerts() -> List[Dict[str, Any]]:
+    """Get most recent IAM alerts"""
+    db = get_db_connection()
+    driver = db.get_driver()
+
+    with driver.session() as session:
+        query = """
+        MATCH (i:Identity)-[:TRIGGERED]->(a:Alert)
+        RETURN a, i.name as identity_name
+        ORDER BY a.timestamp DESC
+        LIMIT 10
+        """
+        result = session.run(query)
+        alerts = []
+        for record in result:
+            alert = dict(record['a'])
+            alert['identity_name'] = record['identity_name']
+            alerts.append(alert)
+        return alerts
