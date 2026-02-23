@@ -8,10 +8,6 @@ class IdentityNormalizer:
     def normalize_aws_data(aws_data: Dict[str, Any], account_id: str) -> Dict[str, List[Dict[str, Any]]]:
         """
         Normalize AWS IAM data into unified identity model
-
-        :param aws_data: Raw AWS IAM data
-        :param account_id: AWS account ID
-        :return: Normalized identity data
         """
         normalized_data = {
             'identities': [],
@@ -21,46 +17,102 @@ class IdentityNormalizer:
 
         # Normalize users
         for user in aws_data.get('users', []):
+            user_id = f"aws::{account_id}::user::{user['user_name']}"
             identity = {
-                'id': f"aws::{account_id}::user::{user['user_name']}",
+                'id': user_id,
                 'provider': 'aws',
                 'type': 'user',
                 'name': user['user_name'],
                 'account_id': account_id,
-                'arn': user['arn'],
-                'create_date': user['create_date'].isoformat() if hasattr(user['create_date'], 'isoformat') else user['create_date']
+                'arn': user['arn']
             }
             normalized_data['identities'].append(identity)
 
-            # Add relationship to groups (would need to fetch group memberships separately)
-            # This is a simplified example
+            # Add relationship to groups
+            for group_name in user.get('groups', []):
+                normalized_data['relationships'].append({
+                    'source': user_id,
+                    'target': f"aws::{account_id}::group::{group_name}",
+                    'type': 'MEMBER_OF'
+                })
+
+            # Add policy attachments
+            for policy in user.get('attached_policies', []):
+                normalized_data['relationships'].append({
+                    'source': user_id,
+                    'target': f"aws::{account_id}::policy::{policy['policy_name']}",
+                    'type': 'ATTACHED_POLICY'
+                })
 
         # Normalize groups
         for group in aws_data.get('groups', []):
+            group_id = f"aws::{account_id}::group::{group['group_name']}"
             identity = {
-                'id': f"aws::{account_id}::group::{group['group_name']}",
+                'id': group_id,
                 'provider': 'aws',
                 'type': 'group',
                 'name': group['group_name'],
                 'account_id': account_id,
-                'arn': group['arn'],
-                'create_date': group['create_date'].isoformat() if hasattr(group['create_date'], 'isoformat') else group['create_date']
+                'arn': group['arn']
             }
             normalized_data['identities'].append(identity)
 
+            # Add policy attachments
+            for policy in group.get('attached_policies', []):
+                normalized_data['relationships'].append({
+                    'source': group_id,
+                    'target': f"aws::{account_id}::policy::{policy['policy_name']}",
+                    'type': 'ATTACHED_POLICY'
+                })
+
         # Normalize roles
         for role in aws_data.get('roles', []):
+            role_id = f"aws::{account_id}::role::{role['role_name']}"
             identity = {
-                'id': f"aws::{account_id}::role::{role['role_name']}",
+                'id': role_id,
                 'provider': 'aws',
                 'type': 'role',
                 'name': role['role_name'],
                 'account_id': account_id,
-                'arn': role['arn'],
-                'create_date': role['create_date'].isoformat() if hasattr(role['create_date'], 'isoformat') else role['create_date'],
-                'assume_role_policy': json.dumps(role['assume_role_policy']) if isinstance(role['assume_role_policy'], dict) else role['assume_role_policy']
+                'arn': role['arn']
             }
             normalized_data['identities'].append(identity)
+
+            # Add policy attachments
+            for policy in role.get('attached_policies', []):
+                normalized_data['relationships'].append({
+                    'source': role_id,
+                    'target': f"aws::{account_id}::policy::{policy['policy_name']}",
+                    'type': 'ATTACHED_POLICY'
+                })
+
+            # Parse AssumeRole trust policy
+            trust_policy = role.get('assume_role_policy', {})
+            if isinstance(trust_policy, str):
+                try:
+                    trust_policy = json.loads(trust_policy)
+                except:
+                    trust_policy = {}
+            
+            statements = trust_policy.get('Statement', [])
+            if isinstance(statements, dict): statements = [statements]
+            
+            for statement in statements:
+                if statement.get('Effect') == 'Allow' and 'sts:AssumeRole' in str(statement.get('Action', '')):
+                    principals = statement.get('Principal', {})
+                    # Handle AWS principals (could be ARN of user, group, role)
+                    aws_principals = principals.get('AWS', [])
+                    if isinstance(aws_principals, str): aws_principals = [aws_principals]
+                    
+                    for p in aws_principals:
+                        # Add TRUSTS relationship
+                        # Note: p could be an ARN like arn:aws:iam::123456789012:user/alice
+                        # We should ideally map this to our internal ID format if it belongs to this account
+                        normalized_data['relationships'].append({
+                            'source': role_id,
+                            'target': p, # Using ARN directly for external or cross-account principals
+                            'type': 'TRUSTS'
+                        })
 
         # Normalize policies
         for policy in aws_data.get('policies', []):
@@ -69,27 +121,10 @@ class IdentityNormalizer:
                 'provider': 'aws',
                 'name': policy['policy_name'],
                 'arn': policy['arn'],
-                'is_managed': True,  # AWS managed policies are managed by AWS
-                'account_id': account_id,
-                'attachment_count': policy['attachment_count']
+                'is_managed': True,
+                'account_id': account_id
             }
             normalized_data['policies'].append(policy_obj)
-
-            # Get policy document
-            try:
-                policy_version = aws_data.get('iam_client').get_policy_version(
-                    PolicyArn=policy['arn'],
-                    VersionId=policy['default_version_id']
-                )
-                policy_obj['document'] = policy_version['PolicyVersion']['Document']
-            except:
-                pass
-
-        # Add relationships (simplified)
-        # In a real implementation, you would need to fetch:
-        # - Group memberships (users in groups)
-        # - Policy attachments (policies attached to users, groups, roles)
-        # - Assume role relationships (trust policies)
 
         return normalized_data
 
@@ -97,75 +132,66 @@ class IdentityNormalizer:
     def normalize_azure_data(azure_data: Dict[str, Any], tenant_id: str) -> Dict[str, List[Dict[str, Any]]]:
         """
         Normalize Azure Entra ID data into unified identity model
-
-        :param azure_data: Raw Azure Entra ID data
-        :param tenant_id: Azure tenant ID
-        :return: Normalized identity data
         """
         normalized_data = {
             'identities': [],
-            'policies': [],  # Azure uses role assignments instead of policies
+            'policies': [],
             'relationships': []
         }
 
         # Normalize users
         for user in azure_data.get('users', []):
+            user_id = f"azure::{tenant_id}::user::{user['id']}"
             identity = {
-                'id': f"azure::{tenant_id}::user::{user['id']}",
+                'id': user_id,
                 'provider': 'azure',
                 'type': 'user',
-                'name': user['display_name'],
-                'account_id': tenant_id,
-                'user_principal_name': user['user_principal_name'],
-                'mail': user['mail'],
-                'account_enabled': user['account_enabled'],
-                'job_title': user['job_title'],
-                'department': user['department'],
-                'created_datetime': user['created_datetime'].isoformat() if hasattr(user['created_datetime'], 'isoformat') else user['created_datetime']
+                'name': user['name'],
+                'account_id': tenant_id
             }
             normalized_data['identities'].append(identity)
 
         # Normalize groups
         for group in azure_data.get('groups', []):
+            group_id = f"azure::{tenant_id}::group::{group['id']}"
             identity = {
-                'id': f"azure::{tenant_id}::group::{group['id']}",
+                'id': group_id,
                 'provider': 'azure',
                 'type': 'group',
-                'name': group['display_name'],
-                'account_id': tenant_id,
-                'description': group['description'],
-                'mail': group['mail'],
-                'mail_enabled': group['mail_enabled'],
-                'security_enabled': group['security_enabled'],
-                'created_datetime': group['created_datetime'].isoformat() if hasattr(group['created_datetime'], 'isoformat') else group['created_datetime']
+                'name': group['name'],
+                'account_id': tenant_id
             }
             normalized_data['identities'].append(identity)
 
+            # Add group memberships
+            for member_id in group.get('members', []):
+                # We don't know if the member is a user, group or SP yet
+                # In Neo4j we'll search by ID
+                normalized_data['relationships'].append({
+                    'source': f"azure::{tenant_id}::entity::{member_id}", # Generic prefix to be resolved
+                    'target': group_id,
+                    'type': 'MEMBER_OF'
+                })
+
         # Normalize service principals
         for sp in azure_data.get('service_principals', []):
+            sp_id = f"azure::{tenant_id}::service_principal::{sp['id']}"
             identity = {
-                'id': f"azure::{tenant_id}::service_principal::{sp['id']}",
+                'id': sp_id,
                 'provider': 'azure',
                 'type': 'service_principal',
-                'name': sp['display_name'],
-                'account_id': tenant_id,
-                'app_id': sp['app_id'],
-                'app_owner_organization_id': sp['app_owner_organization_id'],
-                'account_enabled': sp['account_enabled'],
-                'sign_in_audience': sp['sign_in_audience']
+                'name': sp['name'],
+                'account_id': tenant_id
             }
             normalized_data['identities'].append(identity)
 
         # Add relationships from role assignments
         for assignment in azure_data.get('role_assignments', []):
-            relationship = {
-                'source': f"azure::{tenant_id}::entity::{assignment['principal_id']}",  # Simplified
+            normalized_data['relationships'].append({
+                'source': f"azure::{tenant_id}::entity::{assignment['principal_id']}",
                 'target': f"azure::{tenant_id}::role::{assignment['role_definition_id']}",
-                'type': 'HAS_ROLE',
-                'scope': assignment['directory_scope_id'],
-                'assignment_id': assignment['id']
-            }
-            normalized_data['relationships'].append(relationship)
+                'type': 'HAS_ROLE'
+            })
 
         return normalized_data
 
