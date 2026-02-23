@@ -20,7 +20,11 @@ async def evaluate_iac_changes(request: CIRequest):
         
         # 2. Evaluate
         engine = DecisionEngine()
-        decision = engine.evaluate(proposed_changes)
+        decision = engine.evaluate(
+            proposed_changes, 
+            block_threshold=request.block_threshold,
+            warning_threshold=request.warning_threshold
+        )
         
         # 3. Store in Audit Log (Future milestone)
         return decision

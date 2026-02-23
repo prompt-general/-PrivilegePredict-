@@ -23,3 +23,5 @@ class CIRequest(BaseModel):
     tenant_id: str = "default"
     plan_json: Dict[str, Any]
     provider: str = "aws"
+    block_threshold: Optional[float] = 80.0
+    warning_threshold: Optional[float] = 50.0
