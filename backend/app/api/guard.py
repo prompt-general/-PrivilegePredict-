@@ -22,6 +22,7 @@ async def evaluate_iac_changes(request: CIRequest):
         engine = DecisionEngine()
         decision = engine.evaluate(
             proposed_changes, 
+            tenant_id=request.tenant_id,
             block_threshold=request.block_threshold,
             warning_threshold=request.warning_threshold
         )
