@@ -70,3 +70,7 @@ export const getAlerts = () => {
 export const getRiskSummary = () => {
   return api.get('/risk/summary')
 }
+
+export const getEvaluationHistory = () => {
+  return api.get('/guard/history')
+}
