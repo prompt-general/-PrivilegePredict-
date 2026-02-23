@@ -62,3 +62,7 @@ export const getPaths = (source, target = null) => {
 export const getHighRiskIdentities = () => {
   return api.get('/risk/high-risk-identities')
 }
+
+export const getAlerts = () => {
+  return api.get('/risk/alerts')
+}
