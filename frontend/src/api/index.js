@@ -66,3 +66,7 @@ export const getHighRiskIdentities = () => {
 export const getAlerts = () => {
   return api.get('/risk/alerts')
 }
+
+export const getRiskSummary = () => {
+  return api.get('/risk/summary')
+}
