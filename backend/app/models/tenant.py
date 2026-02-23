@@ -7,6 +7,8 @@ class Tenant(BaseModel):
     id: str = str(uuid.uuid4())
     name: str
     plan: str  # "free" | "pro" | "enterprise"
+    block_threshold: float = 80.0
+    warning_threshold: float = 50.0
     created_at: datetime = datetime.now()
 
 class CloudAccount(BaseModel):
