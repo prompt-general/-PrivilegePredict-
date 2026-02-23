@@ -1,0 +1,22 @@
+{
+    "format_version": "1.2",
+    "resource_changes": [
+        {
+            "address": "aws_iam_role_policy.malicious_policy",
+            "type": "aws_iam_role_policy",
+            "name": "malicious_policy",
+            "provider_name": "registry.terraform.io/hashicorp/aws",
+            "change": {
+                "actions": [
+                    "create"
+                ],
+                "before": null,
+                "after": {
+                    "name": "dangerous-escalation",
+                    "role": "unprivileged-app-role",
+                    "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:PassRole\",\"sts:AssumeRole\"],\"Resource\":\"*\"}]}"
+                }
+            }
+        }
+    ]
+}
