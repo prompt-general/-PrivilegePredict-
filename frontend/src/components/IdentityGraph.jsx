@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import cytoscape from 'cytoscape'
 import { getGraphData, getPaths, getLeastPrivilege } from '../api'
+import AlertFeed from './AlertFeed'
 
 const IdentityGraph = () => {
   const cyRef = useRef(null)
@@ -212,6 +213,7 @@ const IdentityGraph = () => {
       </div>
 
       <div className="identity-sidebar">
+        <AlertFeed />
         {selectedIdentity ? (
           <div className="details-panel">
             <h3>Identity Details</h3>
