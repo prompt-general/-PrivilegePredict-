@@ -599,3 +599,94 @@ main {
   margin-top: 4px;
   word-break: break-all;
 }
+
+/* Settings Page Styles */
+.settings-container {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.settings-panel {
+  background: var(--bg-panel);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+
+.settings-group {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-group label {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+.help-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+.settings-group input[type="range"] {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
+.range-value {
+  align-self: flex-end;
+  font-weight: 800;
+  color: var(--primary);
+  font-size: 1.25rem;
+}
+
+.save-confirmed {
+  margin-left: 1rem;
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.policy-preview {
+  background: rgba(15, 23, 42, 0.5);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+}
+
+.preview-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0 0;
+}
+
+.preview-list li {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.preview-list li.block {
+  background: rgba(244, 63, 94, 0.1);
+  border-left: 4px solid var(--accent);
+}
+
+.preview-list li.warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 4px solid #f59e0b;
+}
+
+.preview-list li.allow {
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 4px solid #10b981;
+}
