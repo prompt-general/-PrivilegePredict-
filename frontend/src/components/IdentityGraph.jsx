@@ -204,6 +204,28 @@ const IdentityGraph = () => {
               <strong>Provider:</strong> <span className={`badge ${selectedIdentity.provider}`}>{selectedIdentity.provider}</span>
             </div>
 
+            {selectedIdentity.used_permissions && (
+              <div className="usage-stats">
+                <h4>Permission Intelligence</h4>
+                <div className="usage-summary">
+                  <div className="usage-item">
+                    <strong>Actions Used</strong>
+                    <span className="count success">{selectedIdentity.used_permissions.length}</span>
+                  </div>
+                  <div className="usage-item">
+                    <strong>Actions Unused</strong>
+                    <span className="count warning">{selectedIdentity.unused_permissions?.length || 0}</span>
+                  </div>
+                </div>
+
+                {selectedIdentity.unused_permissions?.length > 0 && (
+                  <div className="alert-box warning-glow">
+                    ⚠️ <strong>Over-permissive Detected:</strong> {((selectedIdentity.unused_permissions.length / (selectedIdentity.used_permissions.length + selectedIdentity.unused_permissions.length)) * 100).toFixed(0)}% of permissions are never used.
+                  </div>
+                )}
+              </div>
+            )}
+
             <button className="primary-btn" onClick={findEscalation} disabled={loading}>
               {loading ? 'Analyzing...' : 'Find Escalation Paths'}
             </button>
