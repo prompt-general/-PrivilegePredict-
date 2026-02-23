@@ -1,7 +1,12 @@
-import json
-import sys
 import argparse
 import requests
+import os
+import sys
+
+# Add backend to path to import PRCommenter
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from app.services.guard.pr_commenter import PRCommenter
+from app.models.guard import GuardDecision
 
 def main():
     parser = argparse.ArgumentParser(description='PrivilegePredict CI Guard CLI')
@@ -9,6 +14,8 @@ def main():
     parser.add_argument('--api-url', default='http://localhost:8000', help='PrivilegePredict API URL')
     parser.add_argument('--tenant', default='default', help='Tenant ID')
     parser.add_argument('--fail-on-warning', action='store_true', help='Treat warnings as blocks')
+    parser.add_argument('--gh-repo', help='GitHub repository (e.g. org/repo)')
+    parser.add_argument('--pr-number', type=int, help='Pull Request number')
 
     args = parser.parse_args()
 
@@ -51,6 +58,12 @@ def main():
     
     if result["new_escalation_path"]:
         print("\nALERT: This change introduces a NEW privilege escalation path!")
+
+    # Post GitHub Comment if requested
+    if args.gh_repo and args.pr_number:
+        print(f"Posting comment to {args.gh_repo} PR #{args.pr_number}...")
+        decision = GuardDecision(**result)
+        PRCommenter.post_github_comment(args.gh_repo, args.pr_number, decision)
 
     if status == "blocked":
         print("\nPolicy violation: Change BLOCKED by CI Guard.")
