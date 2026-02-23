@@ -1,7 +1,7 @@
 import requests
 import os
 from typing import Dict, Any
-from ..models.guard import GuardDecision
+from ...models.guard import GuardDecision
 
 class PRCommenter:
     """Utility to post analysis results as comments on GitHub pull requests"""
