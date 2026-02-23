@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from ..models.identity import Identity
 from ..graph.database import get_db_connection
 
@@ -39,3 +39,44 @@ def get_identity_by_id(identity_id: str) -> Optional[Identity]:
                 account_id=node.get('account_id')
             )
         return None
+
+def get_full_graph() -> Dict:
+    """Get all nodes and relationships for the full graph"""
+    db = get_db_connection()
+    driver = db.get_driver()
+
+    with driver.session() as session:
+        # Get nodes
+        nodes_result = session.run("MATCH (n:Identity) RETURN n")
+        nodes = []
+        for record in nodes_result:
+            node = record['n']
+            nodes.append({
+                "id": node['id'],
+                "name": node['name'],
+                "type": node.get('type', 'unknown'),
+                "provider": node.get('provider', 'unknown')
+            })
+        
+        # Get policies too
+        policy_result = session.run("MATCH (p:Policy) RETURN p")
+        for record in policy_result:
+            node = record['p']
+            nodes.append({
+                "id": node['id'],
+                "name": node['name'],
+                "type": "policy",
+                "provider": node.get('provider', 'unknown')
+            })
+
+        # Get relationships
+        rel_result = session.run("MATCH (a)-[r]->(b) RETURN a.id as source, b.id as target, type(r) as type")
+        edges = []
+        for record in rel_result:
+            edges.append({
+                "source": record['source'],
+                "target": record['target'],
+                "type": record['type']
+            })
+            
+        return {"nodes": nodes, "edges": edges}
