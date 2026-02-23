@@ -101,6 +101,8 @@ const IdentityGraph = () => {
 
     cyInstance.on('tap', 'node', (event) => {
       setSelectedIdentity(event.target.data())
+      setRecommendation(null)
+      setShowPolicy(false)
     })
 
     setCy(cyInstance)
@@ -128,6 +130,20 @@ const IdentityGraph = () => {
       cyInstance.fit()
     } catch (error) {
       console.error('Error loading graph data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGeneratePolicy = async () => {
+    if (!selectedIdentity) return
+    setLoading(true)
+    try {
+      const response = await getLeastPrivilege(selectedIdentity.id)
+      setRecommendation(response.data)
+      setShowPolicy(true)
+    } catch (error) {
+      console.error('Policy generation error:', error)
     } finally {
       setLoading(false)
     }
@@ -228,9 +244,37 @@ const IdentityGraph = () => {
               </div>
             )}
 
-            <button className="primary-btn" onClick={findEscalation} disabled={loading}>
-              {loading ? 'Analyzing...' : 'Find Escalation Paths'}
-            </button>
+            <div className="action-buttons">
+              <button className="primary-btn" onClick={findEscalation} disabled={loading}>
+                {loading ? 'Analyzing...' : 'Find Escalation Paths'}
+              </button>
+
+              {selectedIdentity.unused_permissions?.length > 0 && (
+                <button className="secondary-btn" onClick={handleGeneratePolicy} disabled={loading}>
+                  Generate Least-Privilege Policy
+                </button>
+              )}
+            </div>
+
+            {recommendation && (
+              <div className="recommendation-panel">
+                <h4>Suggested Remediation</h4>
+                <div className="tabs">
+                  <button className={showPolicy ? 'active' : ''} onClick={() => setShowPolicy(true)}>JSON</button>
+                  <button className={!showPolicy ? 'active' : ''} onClick={() => setShowPolicy(false)}>Terraform</button>
+                </div>
+                <div className="code-block">
+                  <pre>
+                    {showPolicy
+                      ? JSON.stringify(recommendation.json_policy, null, 2)
+                      : recommendation.terraform_policy}
+                  </pre>
+                  <button className="copy-btn" onClick={() => navigator.clipboard.writeText(
+                    showPolicy ? JSON.stringify(recommendation.json_policy, null, 2) : recommendation.terraform_policy
+                  )}>Copy</button>
+                </div>
+              </div>
+            )}
 
             {paths.length > 0 ? (
               <div className="paths-list">
