@@ -1,3 +1,7 @@
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import IdentityGraph from './components/IdentityGraph'
+import IdentityList from './components/IdentityList'
 import Dashboard from './components/Dashboard'
 import Settings from './components/Settings'
 import Navigation from './components/Navigation'
