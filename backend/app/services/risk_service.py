@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 from ..models.identity import Identity
 from ..graph.database import get_db_connection
 
