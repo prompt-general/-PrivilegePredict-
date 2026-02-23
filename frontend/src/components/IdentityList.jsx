@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import { getIdentities } from '../api'
 
 const IdentityList = () => {
   const [identities, setIdentities] = useState([])
@@ -9,11 +9,11 @@ const IdentityList = () => {
   useEffect(() => {
     const fetchIdentities = async () => {
       try {
-        const response = await axios.get('/api/identities')
+        const response = await getIdentities()
         setIdentities(response.data)
-        setLoading(false)
       } catch (err) {
-        setError('Failed to fetch identities')
+        setError('Failed to fetch identities. Ensure the backend is running.')
+      } finally {
         setLoading(false)
       }
     }
@@ -21,8 +21,8 @@ const IdentityList = () => {
     fetchIdentities()
   }, [])
 
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>Error: {error}</div>
+  if (loading) return <div className="loader-container"><span className="loader">Loading identities...</span></div>
+  if (error) return <div className="error-container">{error}</div>
 
   return (
     <div className="identity-list">
