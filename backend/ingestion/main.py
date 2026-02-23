@@ -120,12 +120,38 @@ def store_in_graph_db(unified_graph):
         # Insert relationships
         print("Inserting relationships...")
         for relationship in unified_graph['relationships']:
-            session.run("""
-                MATCH (a:Identity {id: $source})
-                MATCH (b:Identity {id: $target})
-                MERGE (a)-[r:RELATIONSHIP]->(b)
-                SET r.type = $type
-            """, relationship)
+            rel_type = relationship.get('type', 'RELATIONSHIP')
+            
+            # Use APOC or multiple queries if dynamic labels aren't possible. 
+            # For simplicity in this script, we'll use a few specific queries for common types.
+            if rel_type == 'MEMBER_OF':
+                session.run("""
+                    MATCH (a {id: $source})
+                    MATCH (b {id: $target})
+                    MERGE (a)-[:MEMBER_OF]->(b)
+                """, relationship)
+            elif rel_type == 'ASSUMES' or rel_type == 'TRUSTS':
+                # For TRUSTS, the target might be an ARN we don't have a node for yet.
+                # Let's create a placeholder node if it doesn't exist.
+                session.run("""
+                    MERGE (b:Identity {id: $target})
+                    ON CREATE SET b.name = $target, b.type = 'external'
+                    WITH b
+                    MATCH (a:Identity {id: $source})
+                    MERGE (a)-[:""" + rel_type + """]->(b)
+                """, relationship)
+            elif rel_type == 'ATTACHED_POLICY':
+                session.run("""
+                    MATCH (a:Identity {id: $source})
+                    MATCH (b:Policy {id: $target})
+                    MERGE (a)-[:ATTACHED_POLICY]->(b)
+                """, relationship)
+            else:
+                session.run("""
+                    MATCH (a {id: $source})
+                    MATCH (b {id: $target})
+                    MERGE (a)-[:RELATIONSHIP {type: $type}]->(b)
+                """, relationship)
 
     print("Data stored successfully!")
 
