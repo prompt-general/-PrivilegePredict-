@@ -1,9 +1,17 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 from ..models.identity import Identity
-from ..services.identity_service import get_all_identities, get_identity_by_id
+from ..services.identity_service import get_all_identities, get_identity_by_id, get_full_graph
 
 router = APIRouter()
+
+@router.get("/graph")
+async def get_graph_data():
+    """Get full graph data including nodes and edges"""
+    try:
+        return get_full_graph()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/", response_model=List[Identity])
 async def list_identities():

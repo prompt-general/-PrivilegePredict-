@@ -39,6 +39,10 @@ export const getIdentities = () => {
   return api.get('/identities')
 }
 
+export const getGraphData = () => {
+  return api.get('/identities/graph')
+}
+
 export const getIdentityById = (id) => {
   return api.get(`/identities/${id}`)
 }
