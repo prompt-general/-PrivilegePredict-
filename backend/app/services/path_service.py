@@ -47,7 +47,8 @@ def find_escalation_paths(source_id: str, target_id: Optional[str] = None) -> Li
                 relationships.append({
                     "source": rel.start_node['id'],
                     "target": rel.end_node['id'],
-                    "type": rel.type
+                    "type": rel.type,
+                    "properties": dict(rel)
                 })
             
             paths.append(Path(
