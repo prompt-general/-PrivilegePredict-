@@ -145,19 +145,50 @@ class AWSConnector:
 
         return policies
 
+    def get_group_users(self, group_name: str) -> List[str]:
+        """Get users in a group"""
+        users = []
+        paginator = self.iam_client.get_paginator('get_group')
+        for page in paginator.paginate(GroupName=group_name):
+            for user in page['Users']:
+                users.append(user['UserName'])
+        return users
+
+    def get_user_groups(self, user_name: str) -> List[str]:
+        """Get groups for a user"""
+        groups = []
+        paginator = self.iam_client.get_paginator('list_groups_for_user')
+        for page in paginator.paginate(UserName=user_name):
+            for group in page['Groups']:
+                groups.append(group['GroupName'])
+        return groups
+
     def get_all_iam_data(self, account_id: str) -> Dict[str, Any]:
         """
-        Get all IAM data for an account
-
-        :param account_id: AWS account ID
-        :return: Dictionary containing all IAM data
+        Get all IAM data for an account including relationships
         """
+        users = self.get_users()
+        groups = self.get_groups()
+        roles = self.get_roles()
+        policies = self.get_policies()
+
+        # Get relationships
+        for user in users:
+            user['attached_policies'] = self.get_attached_user_policies(user['user_name'])
+            user['groups'] = self.get_user_groups(user['user_name'])
+        
+        for group in groups:
+            group['attached_policies'] = self.get_attached_group_policies(group['group_name'])
+        
+        for role in roles:
+            role['attached_policies'] = self.get_attached_role_policies(role['role_name'])
+
         return {
             'account_id': account_id,
-            'users': self.get_users(),
-            'groups': self.get_groups(),
-            'roles': self.get_roles(),
-            'policies': self.get_policies()
+            'users': users,
+            'groups': groups,
+            'roles': roles,
+            'policies': policies
         }
 
 # Example usage:

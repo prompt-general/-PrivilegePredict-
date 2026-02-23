@@ -144,19 +144,40 @@ class AzureConnector:
             print(f"Error getting role definitions: {e}")
             return []
 
+    async def get_group_members(self, group_id: str) -> List[str]:
+        """Get members of a group"""
+        try:
+            members = await self.client.groups.by_group_id(group_id).members.get()
+            member_ids = []
+            if members.value:
+                for member in members.value:
+                    member_ids.append(member.id)
+            return member_ids
+        except Exception as e:
+            print(f"Error getting group members: {e}")
+            return []
+
     async def get_all_entra_id_data(self) -> Dict[str, Any]:
         """
         Get all Entra ID (Azure AD) data
-
-        :return: Dictionary containing all Entra ID data
         """
+        users = await self.get_users()
+        groups = await self.get_groups()
+        service_principals = await self.get_service_principals()
+        role_assignments = await self.get_role_assignments()
+        role_definitions = await self.get_role_definitions()
+
+        # Get group members
+        for group in groups:
+            group['members'] = await self.get_group_members(group['id'])
+
         return {
             'tenant_id': self.tenant_id,
-            'users': await self.get_users(),
-            'groups': await self.get_groups(),
-            'service_principals': await self.get_service_principals(),
-            'role_assignments': await self.get_role_assignments(),
-            'role_definitions': await self.get_role_definitions()
+            'users': users,
+            'groups': groups,
+            'service_principals': service_principals,
+            'role_assignments': role_assignments,
+            'role_definitions': role_definitions
         }
 
 # Example usage:
