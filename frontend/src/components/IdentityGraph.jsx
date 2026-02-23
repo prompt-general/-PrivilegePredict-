@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import cytoscape from 'cytoscape'
-import { getGraphData, getPaths } from '../api'
+import { getGraphData, getPaths, getLeastPrivilege } from '../api'
 
 const IdentityGraph = () => {
   const cyRef = useRef(null)
@@ -9,6 +9,8 @@ const IdentityGraph = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(false)
   const [paths, setPaths] = useState([])
+  const [recommendation, setRecommendation] = useState(null)
+  const [showPolicy, setShowPolicy] = useState(false)
 
   useEffect(() => {
     const cyInstance = cytoscape({

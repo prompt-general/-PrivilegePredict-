@@ -47,6 +47,10 @@ export const getIdentityById = (id) => {
   return api.get(`/identities/${id}`)
 }
 
+export const getLeastPrivilege = (id) => {
+  return api.get(`/identities/${id}/least-privilege`)
+}
+
 export const getPaths = (source, target = null) => {
   const params = { source }
   if (target) {
