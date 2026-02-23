@@ -1,0 +1,31 @@
+name: PrivilegePredict IAM Guard
+
+on:
+  pull_request:
+    paths:
+      - '**.tf'
+      - '**.tfvars'
+
+jobs:
+  iam-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform init
+          terraform plan -out=tfplan.binary
+          terraform show -json tfplan.binary > plan.json
+
+      - name: PrivilegePredict Guard
+        run: |
+          # Use the CLI tool to evaluate the plan
+          python backend/cli/guard_cli.py --plan plan.json --tenant ${{ secrets.PP_TENANT_ID }} --api-url ${{ secrets.PP_API_URL }}
+        env:
+          PP_API_KEY: ${{ secrets.PP_API_KEY }}
