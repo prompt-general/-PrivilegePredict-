@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom'
 
 const Navigation = () => {
   return (
-    <nav className="navigation">
-      <h1>PrivilegePredict</h1>
-      <ul>
-        <li><Link to="/">Graph Visualization</Link></li>
+    <nav className="main-nav">
+      <div className="nav-brand">PrivilegePredict <span className="beta-tag">PRO</span></div>
+      <ul className="nav-links">
+        <li><Link to="/">Dashboard</Link></li>
+        <li><Link to="/graph">Identity Graph</Link></li>
         <li><Link to="/identities">Identities</Link></li>
       </ul>
     </nav>
