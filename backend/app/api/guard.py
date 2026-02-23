@@ -2,8 +2,17 @@ from fastapi import APIRouter, HTTPException
 from ..models.guard import CIRequest, GuardDecision
 from ..services.guard.iac_parser import TerraformParser
 from ..services.guard.decision_engine import DecisionEngine
+from ..services.guard.audit_query_service import get_evaluation_history
 
 router = APIRouter()
+
+@router.get("/history")
+async def list_evaluation_history(tenant_id: str = "default"):
+    """Get history of CI/CD evaluations and risk decisions"""
+    try:
+        return get_evaluation_history(tenant_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/evaluate", response_model=GuardDecision)
 async def evaluate_iac_changes(request: CIRequest):
