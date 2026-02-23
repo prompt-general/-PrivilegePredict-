@@ -159,3 +159,49 @@ main {
   font-style: italic;
   font-size: 0.9rem;
 }
+
+.identity-list {
+  padding: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.identity-list table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-panel);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.identity-list th {
+  background: rgba(51, 65, 85, 0.5);
+  text-align: left;
+  padding: 16px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.identity-list td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.identity-list tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.loader-container,
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.error-container {
+  color: var(--accent);
+  font-weight: bold;
+}
