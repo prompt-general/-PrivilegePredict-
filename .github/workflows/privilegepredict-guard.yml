@@ -25,7 +25,13 @@ jobs:
 
       - name: PrivilegePredict Guard
         run: |
-          # Use the CLI tool to evaluate the plan
-          python backend/cli/guard_cli.py --plan plan.json --tenant ${{ secrets.PP_TENANT_ID }} --api-url ${{ secrets.PP_API_URL }}
+          # Use the CLI tool to evaluate the plan and post PR comment
+          python backend/cli/guard_cli.py \
+            --plan plan.json \
+            --tenant ${{ secrets.PP_TENANT_ID }} \
+            --api-url ${{ secrets.PP_API_URL }} \
+            --gh-repo ${{ github.repository }} \
+            --pr-number ${{ github.event.pull_request.number }}
         env:
           PP_API_KEY: ${{ secrets.PP_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
