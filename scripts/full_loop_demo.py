@@ -12,7 +12,7 @@ from app.services.guard.pr_commenter import PRCommenter
 from app.models.guard import GuardDecision
 
 def run_full_loop_demo():
-    print("🚀 Initializing PrivilegePredict Full-Loop Prevention Test...")
+    print("Initializing PrivilegePredict Full-Loop Prevention Test...")
     time.sleep(1)
 
     # 1. Simulate Developer proposing a Terraform change
@@ -48,8 +48,7 @@ def run_full_loop_demo():
     print("\n[Step 4] Posting Security Feedback to GitHub PR...")
     # In demo, we just print the markdown body
     print(">>> GitHub Comment Draft:")
-    status_emoji = "❌" if decision.status == "blocked" else "✅"
-    print(f"## {status_emoji} PrivilegePredict IAM Analysis")
+    print(f"## PrivilegePredict IAM Analysis")
     print(f"**Status:** {decision.status.upper()}")
     print(f"**Reasons:** {', '.join(decision.reasons)}")
 
@@ -57,7 +56,7 @@ def run_full_loop_demo():
     print("\n[Step 5] Evaluation archived. Dashboard updated.")
     print(f"Audit Trail Link: http://localhost:5173/audit")
     
-    print("\n✅ PREVENTION SUCCESSFUL: Malicious IAM change blocked prior to deployment.")
+    print("\nPREVENTION SUCCESSFUL: Malicious IAM change blocked prior to deployment.")
 
 if __name__ == "__main__":
     run_full_loop_demo()
