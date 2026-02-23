@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import cytoscape from 'cytoscape'
-import { getIdentities, getPaths } from '../api'
+import { getGraphData, getPaths } from '../api'
 
 const IdentityGraph = () => {
   const cyRef = useRef(null)
@@ -32,14 +32,14 @@ const IdentityGraph = () => {
           selector: 'node[provider = "aws"]',
           style: {
             'border-width': 2,
-            'border-color': '#ff9900' // AWS Orange
+            'border-color': '#ff9900'
           }
         },
         {
           selector: 'node[provider = "azure"]',
           style: {
             'border-width': 2,
-            'border-color': '#0078d4' // Azure Blue
+            'border-color': '#0078d4'
           }
         },
         {
@@ -57,6 +57,13 @@ const IdentityGraph = () => {
         {
           selector: 'node[type = "service_principal"]',
           style: { 'background-color': '#d69e2e' }
+        },
+        {
+          selector: 'node[type = "policy"]',
+          style: {
+            'background-color': '#805ad5',
+            'shape': 'rectangle'
+          }
         },
         {
           selector: 'edge',
@@ -78,7 +85,8 @@ const IdentityGraph = () => {
             'line-color': '#f56565',
             'target-arrow-color': '#f56565',
             'transition-property': 'background-color, line-color, target-arrow-color',
-            'transition-duration': '0.5s'
+            'transition-duration': '0.5s',
+            'width': node => node.isNode() ? '50px' : '4px'
           }
         }
       ],
@@ -104,16 +112,17 @@ const IdentityGraph = () => {
   const loadGraphData = async (cyInstance) => {
     setLoading(true)
     try {
-      const response = await getIdentities()
-      const nodes = response.data.map(id => ({
-        data: { ...id }
-      }))
+      const response = await getGraphData()
+      const { nodes, edges } = response.data
 
-      // For Phase 1, we might need to fetch relationships too if they aren't in identities
-      // Assuming identities API returns a structured graph or we need a separate /graph endpoint
-      // But for now, let's just add the nodes.
-      cyInstance.add(nodes)
-      cyInstance.layout({ name: 'cose' }).run()
+      const elements = [
+        ...nodes.map(n => ({ data: { ...n } })),
+        ...edges.map(e => ({ data: { ...e } }))
+      ]
+
+      cyInstance.elements().remove()
+      cyInstance.add(elements)
+      cyInstance.layout({ name: 'cose', animate: true }).run()
       cyInstance.fit()
     } catch (error) {
       console.error('Error loading graph data:', error)
@@ -129,14 +138,15 @@ const IdentityGraph = () => {
       const response = await getPaths(selectedIdentity.id)
       setPaths(response.data)
 
-      // Highlight paths in the graph
       if (cy && response.data.length > 0) {
         cy.elements().removeClass('highlighted')
         response.data.forEach(path => {
           path.nodes.forEach(node => {
             cy.getElementById(node.id).addClass('highlighted')
           })
-          // We'd also need edge IDs here, but for now highlighting nodes is a start
+          path.relationships.forEach(rel => {
+            cy.edges(`[source = "${rel.source}"][target = "${rel.target}"]`).addClass('highlighted')
+          })
         })
       }
     } catch (error) {
@@ -158,7 +168,8 @@ const IdentityGraph = () => {
     if (results.length > 0) {
       cy.animate({
         center: { eles: results },
-        zoom: 2
+        zoom: 1.5,
+        duration: 500
       })
     }
   }
@@ -169,13 +180,14 @@ const IdentityGraph = () => {
         <div className="controls-overlay">
           <input
             type="text"
-            placeholder="Search identities (name or ID)..."
+            placeholder="Search identities..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && searchIdentities()}
           />
           <button onClick={searchIdentities}>Search</button>
-          {loading && <span className="loader">Loading...</span>}
+          <button onClick={() => loadGraphData(cy)} style={{ background: '#4a5568', color: 'white' }}>Refresh</button>
+          {loading && <span className="loader">Processing...</span>}
         </div>
 
         <div ref={cyRef} className="cy-container" />
@@ -186,26 +198,28 @@ const IdentityGraph = () => {
           <div className="details-panel">
             <h3>Identity Details</h3>
             <div className="info-grid">
-              <strong>ID:</strong> <span>{selectedIdentity.id}</span>
+              <strong>ID:</strong> <span style={{ wordBreak: 'break-all' }}>{selectedIdentity.id}</span>
               <strong>Name:</strong> <span>{selectedIdentity.name}</span>
               <strong>Type:</strong> <span className={`badge ${selectedIdentity.type}`}>{selectedIdentity.type}</span>
               <strong>Provider:</strong> <span className={`badge ${selectedIdentity.provider}`}>{selectedIdentity.provider}</span>
             </div>
 
-            <button className="primary-btn" onClick={findEscalation}>
-              Find Escalation Paths
+            <button className="primary-btn" onClick={findEscalation} disabled={loading}>
+              {loading ? 'Analyzing...' : 'Find Escalation Paths'}
             </button>
 
-            {paths.length > 0 && (
+            {paths.length > 0 ? (
               <div className="paths-list">
                 <h4>Potential Paths ({paths.length})</h4>
                 {paths.map((path, idx) => (
                   <div key={idx} className="path-item">
-                    <p>Risk Score: {(path.risk_score * 100).toFixed(0)}%</p>
+                    <p style={{ color: path.risk_score > 0.7 ? '#f56565' : '#ecc94b', fontWeight: 'bold' }}>
+                      Risk Score: {(path.risk_score * 100).toFixed(0)}%
+                    </p>
                     <div className="path-visual">
                       {path.nodes.map((n, i) => (
                         <span key={i}>
-                          {n.name}
+                          <span style={{ color: n.id === selectedIdentity.id ? '#38bdf8' : 'inherit' }}>{n.name}</span>
                           {i < path.nodes.length - 1 && ' → '}
                         </span>
                       ))}
@@ -213,18 +227,18 @@ const IdentityGraph = () => {
                   </div>
                 ))}
               </div>
+            ) : paths.length === 0 && !loading && (
+              <p style={{ marginTop: '20px', fontSize: '0.8rem', color: '#94a3b8' }}>No escalation paths found yet.</p>
             )}
           </div>
         ) : (
           <div className="empty-state">
-            <p>Select a node to view details and escalation paths</p>
+            <p>Select a node in the graph to analyze its privilege escalation risks.</p>
           </div>
         )}
       </div>
     </div>
   )
 }
-
-export default IdentityGraph
 
 export default IdentityGraph
