@@ -8,4 +8,7 @@ class Identity(BaseModel):
     name: str
     account_id: Optional[str] = None
     risk_score: Optional[float] = None
+    high_privilege: Optional[bool] = False
+    used_permissions: Optional[List[str]] = None
+    unused_permissions: Optional[List[str]] = None
     properties: Optional[Dict[str, Any]] = None

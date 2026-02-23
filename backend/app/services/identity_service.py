@@ -17,7 +17,11 @@ def get_all_identities() -> List[Identity]:
                 provider=node['provider'],
                 type=node['type'],
                 name=node['name'],
-                account_id=node.get('account_id')
+                account_id=node.get('account_id'),
+                risk_score=node.get('risk_score'),
+                high_privilege=node.get('high_privilege', False),
+                used_permissions=node.get('used_permissions'),
+                unused_permissions=node.get('unused_permissions')
             ))
         return identities
 
@@ -36,7 +40,11 @@ def get_identity_by_id(identity_id: str) -> Optional[Identity]:
                 provider=node['provider'],
                 type=node['type'],
                 name=node['name'],
-                account_id=node.get('account_id')
+                account_id=node.get('account_id'),
+                risk_score=node.get('risk_score'),
+                high_privilege=node.get('high_privilege', False),
+                used_permissions=node.get('used_permissions'),
+                unused_permissions=node.get('unused_permissions')
             )
         return None
 
