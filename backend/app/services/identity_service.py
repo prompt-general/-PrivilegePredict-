@@ -63,7 +63,11 @@ def get_full_graph() -> Dict:
                 "id": node['id'],
                 "name": node['name'],
                 "type": node.get('type', 'unknown'),
-                "provider": node.get('provider', 'unknown')
+                "provider": node.get('provider', 'unknown'),
+                "risk_score": node.get('risk_score', 0),
+                "high_privilege": node.get('high_privilege', False),
+                "used_permissions": node.get('used_permissions', []),
+                "unused_permissions": node.get('unused_permissions', [])
             })
         
         # Get policies too
