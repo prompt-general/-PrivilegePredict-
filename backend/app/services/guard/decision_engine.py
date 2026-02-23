@@ -12,7 +12,7 @@ class DecisionEngine:
         self.risk_engine = RiskScoringEngine()
         self.simulator = GraphSimulator()
 
-    def evaluate(self, changes: List[ProposedChange]) -> GuardDecision:
+    def evaluate(self, changes: List[ProposedChange], block_threshold: float = 80.0, warning_threshold: float = 50.0) -> GuardDecision:
         if not changes:
             return GuardDecision(
                 status="approved",
@@ -41,9 +41,9 @@ class DecisionEngine:
 
         # Apply Thresholds
         status = "approved"
-        if max_score >= 80 or any_escalation:
+        if max_score >= block_threshold or any_escalation:
             status = "blocked"
-        elif max_score >= 50:
+        elif max_score >= warning_threshold:
             status = "warning"
 
         return GuardDecision(
