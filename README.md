@@ -136,5 +136,5 @@ PrivilegePredict is released under the **MIT License**.
 ---
 
 <div align="center">
-Built with ❤️ by the PrivilegePredict Team
+Built with ❤️ 
 </div>
